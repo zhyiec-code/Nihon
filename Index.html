@@ -1,0 +1,375 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語プライベートコーチ / 日语私教</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Microsoft YaHei", sans-serif;
+    background: #0f1117; color: #e8eaed; line-height: 1.6;
+    max-width: 720px; margin: 0 auto; padding: 16px;
+  }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 20px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    padding: 8px 14px; border-radius: 8px; background: #1a1d27;
+    color: #9aa0a6; cursor: pointer; font-size: 14px; border: none;
+  }
+  .tab.active { background: #2d5bff; color: #fff; }
+  .card {
+    background: #1a1d27; border-radius: 14px; padding: 24px;
+    margin-bottom: 16px;
+  }
+  .big-jp { font-size: 44px; font-weight: 600; text-align: center; margin: 20px 0; }
+  .big-reading { font-size: 22px; text-align: center; color: #7ba7ff; margin-bottom: 12px; }
+  .meaning { text-align: center; color: #9aa0a6; font-size: 16px; }
+  .warn { color: #ffb74d; font-size: 13px; text-align: center; margin-top: 8px; }
+  .btn {
+    padding: 12px 20px; border-radius: 10px; border: none;
+    background: #2d5bff; color: #fff; font-size: 15px;
+    cursor: pointer; margin: 4px; font-weight: 500;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.ghost { background: #2a2e3d; color: #e8eaed; }
+  .btn.good { background: #1e8e3e; }
+  .btn.bad { background: #c5221f; }
+  .row { display: flex; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat {
+    flex: 1; min-width: 100px; background: #1a1d27;
+    border-radius: 12px; padding: 16px; text-align: center;
+  }
+  .stat .num { font-size: 28px; font-weight: 700; color: #7ba7ff; }
+  .stat .lbl { font-size: 12px; color: #9aa0a6; margin-top: 4px; }
+  input, textarea {
+    width: 100%; padding: 12px; border-radius: 10px;
+    border: 1px solid #2a2e3d; background: #0f1117; color: #e8eaed;
+    font-size: 15px; font-family: inherit; margin-bottom: 10px;
+  }
+  .chat-box { max-height: 360px; overflow-y: auto; margin-bottom: 12px; }
+  .msg { padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; font-size: 15px; }
+  .msg.user { background: #2d5bff; color: #fff; margin-left: 40px; }
+  .msg.ai { background: #2a2e3d; margin-right: 40px; white-space: pre-wrap; }
+  .grammar-item { border-bottom: 1px solid #2a2e3d; padding: 14px 0; }
+  .grammar-item:last-child { border: none; }
+  .g-title { font-size: 18px; font-weight: 600; color: #7ba7ff; }
+  .g-ex { color: #9aa0a6; font-size: 14px; margin-top: 6px; }
+  .hidden { display: none; }
+  .progress-bar { height: 8px; background: #2a2e3d; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; background: #2d5bff; transition: width 0.3s; }
+  .setup { background: #1a1d27; border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .setup label { font-size: 13px; color: #9aa0a6; display: block; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<h1>日本語プライベートコーチ</h1>
+<div class="sub">日语私教 · N5 → 流利 · 专为中文母语者设计</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('home')">首页</button>
+  <button class="tab" onclick="showTab('words')">単語</button>
+  <button class="tab" onclick="showTab('grammar')">文法</button>
+  <button class="tab" onclick="showTab('chat')">会話</button>
+</div>
+
+<!-- 首页 -->
+<div id="home">
+  <div class="stats">
+    <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">総単語 / 总词数</div></div>
+    <div class="stat"><div class="num" id="s-learned">0</div><div class="lbl">習得 / 已掌握</div></div>
+    <div class="stat"><div class="num" id="s-due">0</div><div class="lbl">復習待ち / 待复习</div></div>
+    <div class="stat"><div class="num" id="s-streak">0</div><div class="lbl">連続日数 / 连续天数</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">今日のタスク / 今日任务</div>
+    <div style="color:#9aa0a6;font-size:14px" id="today-task">読み込み中...</div>
+    <div class="progress-bar"><div class="progress-fill" id="today-progress" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <div style="font-size:16px;font-weight:600;margin-bottom:12px">学習のコツ / 学习建议</div>
+    <div style="color:#9aa0a6;font-size:14px;line-height:1.8">
+      1. 毎日1時間、必ず続ける（每天1小时，坚持）<br>
+      2. 単語は「漢字→読み」を重点に（重点练汉字→读音）<br>
+      3. 会話タブで毎日AIと話す（每天用AI对话）<br>
+      4. 間違えた単語は何度も復習（错词反复复习）
+    </div>
+  </div>
+</div>
+
+<!-- 单词 -->
+<div id="words" class="hidden">
+  <div class="card" id="word-card">
+    <div class="big-jp" id="w-front">読み込み中</div>
+    <div class="big-reading hidden" id="w-reading"></div>
+    <div class="meaning hidden" id="w-meaning"></div>
+    <div class="warn hidden" id="w-warn"></div>
+    <div class="row" id="w-buttons">
+      <button class="btn" onclick="revealWord()">答えを見る / 显示答案</button>
+    </div>
+    <div class="row hidden" id="w-rate">
+      <button class="btn bad" onclick="rateWord(0)">😵 忘れた / 忘了</button>
+      <button class="btn ghost" onclick="rateWord(1)">🤔 微妙 / 模糊</button>
+      <button class="btn good" onclick="rateWord(2)">😊 覚えた / 记住了</button>
+    </div>
+  </div>
+</div>
+
+<!-- 语法 -->
+<div id="grammar" class="hidden">
+  <div class="card" id="grammar-list"></div>
+</div>
+
+<!-- 对话 -->
+<div id="chat" class="hidden">
+  <div class="setup" id="api-setup">
+    <label>Claude API Key（sk-ant-...）</label>
+    <input type="password" id="api-key" placeholder="sk-ant-...">
+    <label style="margin-top:8px">你的日语水平</label>
+    <input type="text" id="level" value="N5（初学者）">
+    <button class="btn" onclick="saveKey()">保存 / 保存</button>
+  </div>
+  <div class="card">
+    <div class="chat-box" id="chat-box"></div>
+    <textarea id="chat-input" rows="2" placeholder="日本語で話しかけてください... / 用日语输入..."></textarea>
+    <button class="btn" onclick="sendChat()">送信 / 发送</button>
+    <button class="btn ghost" onclick="clearChat()">クリア / 清空</button>
+  </div>
+</div>
+
+<script>
+// ============ 数据 ============
+const WORDS = [
+  {jp:"勉強", reading:"べんきょう", meaning:"学习", warn:""},
+  {jp:"学校", reading:"がっこう", meaning:"学校", warn:""},
+  {jp:"先生", reading:"せんせい", meaning:"老师", warn:""},
+  {jp:"友達", reading:"ともだち", meaning:"朋友", warn:""},
+  {jp:"時間", reading:"じかん", meaning:"时间", warn:""},
+  {jp:"電話", reading:"でんわ", meaning:"电话", warn:""},
+  {jp:"手紙", reading:"てがみ", meaning:"信", warn:"⚠️ 中文「手纸」是卫生纸，日语是「信」"},
+  {jp:"汽車", reading:"きしゃ", meaning:"火车", warn:"⚠️ 中文「汽车」是 automobile，日语「汽車」是火车"},
+  {jp:"愛人", reading:"あいじん", meaning:"情人（贬义）", warn:"⚠️ 日语中指婚外情对象，慎用"},
+  {jp:"大丈夫", reading:"だいじょうぶ", meaning:"没关系", warn:""},
+  {jp:"一生懸命", reading:"いっしょうけんめい", meaning:"拼命努力", warn:""},
+  {jp:"天気", reading:"てんき", meaning:"天气", warn:""},
+  {jp:"料理", reading:"りょうり", meaning:"料理、菜", warn:""},
+  {jp:"旅行", reading:"りょこう", meaning:"旅行", warn:""},
+  {jp:"仕事", reading:"しごと", meaning:"工作", warn:""},
+  {jp:"病院", reading:"びょういん", meaning:"医院", warn:""},
+  {jp:"映画", reading:"えいが", meaning:"电影", warn:""},
+  {jp:"音楽", reading:"おんがく", meaning:"音乐", warn:""},
+  {jp:"約束", reading:"やくそく", meaning:"约定", warn:""},
+  {jp:"準備", reading:"じゅんび", meaning:"准备", warn:""},
+];
+
+const GRAMMAR = [
+  {title:"〜は〜です", ex:"私は学生です。/ 我是学生。", note:"最基本的判断句。は是主题助词。"},
+  {title:"〜を〜ます", ex:"ご飯を食べます。/ 吃饭。", note:"を是宾语助词，ます是敬体动词结尾。"},
+  {title:"〜に〜があります", ex:"部屋に机があります。/ 房间里有一张桌子。", note:"あります用于无生命物，います用于人或动物。"},
+  {title:"〜てください", ex:"ゆっくり話してください。/ 请说慢一点。", note:"请求对方做某事，非常常用。"},
+  {title:"〜たいです", ex:"日本に行きたいです。/ 我想去日本。", note:"表达自己的愿望。たい接动词ます形。"},
+  {title:"〜ています", ex:"今、勉強しています。/ 现在正在学习。", note:"表示正在进行的动作或持续状态。"},
+  {title:"〜てもいいですか", ex:"写真を撮ってもいいですか。/ 可以拍照吗？", note:"请求许可，日常必备。"},
+  {title:"〜なければなりません", ex:"宿題をしなければなりません。/ 必须做作业。", note:"表示义务、必须。较长但常用。"},
+];
+
+// ============ 状态管理 ============
+let store = JSON.parse(localStorage.getItem('jp_coach') || '{}');
+if (!store.words) store.words = {};
+if (!store.chat) store.chat = [];
+if (!store.streak) store.streak = {count:0, last:''};
+if (!store.dailyCount) store.dailyCount = {date:'', count:0};
+
+function save() { localStorage.setItem('jp_coach', JSON.stringify(store)); }
+
+// ============ SRS 算法 ============
+function getWordState(jp) {
+  return store.words[jp] || {level:0, due:Date.now(), seen:0};
+}
+function nextInterval(level) {
+  const days = [0, 1, 3, 7, 14, 30, 90];
+  return days[Math.min(level, days.length-1)] * 86400000;
+}
+function rateWord(quality) {
+  const w = currentWord;
+  const s = getWordState(w.jp);
+  if (quality === 0) s.level = 0;
+  else if (quality === 1) s.level = Math.max(0, s.level);
+  else s.level = Math.min(s.level + 1, 6);
+  s.due = Date.now() + nextInterval(s.level);
+  s.seen = (s.seen||0) + 1;
+  store.words[w.jp] = s;
+  // 记录今日学习
+  const today = new Date().toDateString();
+  if (store.dailyCount.date !== today) store.dailyCount = {date:today, count:0};
+  store.dailyCount.count++;
+  updateStreak();
+  save();
+  loadNextWord();
+}
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  if (store.streak.last === today) return;
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  if (store.streak.last === yesterday) store.streak.count++;
+  else store.streak.count = 1;
+  store.streak.last = today;
+}
+
+// ============ 单词逻辑 ============
+let currentWord = null;
+function loadNextWord() {
+  const now = Date.now();
+  const due = WORDS.filter(w => getWordState(w.jp).due <= now);
+  const pool = due.length > 0 ? due : WORDS;
+  currentWord = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('w-front').textContent = currentWord.jp;
+  document.getElementById('w-reading').classList.add('hidden');
+  document.getElementById('w-meaning').classList.add('hidden');
+  document.getElementById('w-warn').classList.add('hidden');
+  document.getElementById('w-buttons').classList.remove('hidden');
+  document.getElementById('w-rate').classList.add('hidden');
+  updateStats();
+}
+function revealWord() {
+  document.getElementById('w-reading').textContent = currentWord.reading;
+  document.getElementById('w-meaning').textContent = currentWord.meaning;
+  document.getElementById('w-reading').classList.remove('hidden');
+  document.getElementById('w-meaning').classList.remove('hidden');
+  if (currentWord.warn) {
+    document.getElementById('w-warn').textContent = currentWord.warn;
+    document.getElementById('w-warn').classList.remove('hidden');
+  }
+  document.getElementById('w-buttons').classList.add('hidden');
+  document.getElementById('w-rate').classList.remove('hidden');
+}
+
+// ============ 统计 ============
+function updateStats() {
+  const total = WORDS.length;
+  let learned = 0, due = 0;
+  const now = Date.now();
+  WORDS.forEach(w => {
+    const s = getWordState(w.jp);
+    if (s.level >= 3) learned++;
+    if (s.due <= now) due++;
+  });
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-learned').textContent = learned;
+  document.getElementById('s-due').textContent = due;
+  document.getElementById('s-streak').textContent = store.streak.count;
+  const today = new Date().toDateString();
+  const done = store.dailyCount.date === today ? store.dailyCount.count : 0;
+  const goal = 20;
+  document.getElementById('today-task').textContent =
+    `単語 ${done}/${goal} ・ 会話 0/1 ・ 文法 0/2`;
+  document.getElementById('today-progress').style.width = Math.min(100, done/goal*100) + '%';
+}
+
+// ============ 语法 ============
+function renderGrammar() {
+  document.getElementById('grammar-list').innerHTML = GRAMMAR.map(g => `
+    <div class="grammar-item">
+      <div class="g-title">${g.title}</div>
+      <div class="g-ex">${g.ex}</div>
+      <div class="g-ex" style="color:#7ba7ff">${g.note}</div>
+    </div>
+  `).join('');
+}
+
+// ============ Tab ============
+function showTab(name) {
+  ['home','words','grammar','chat'].forEach(t => {
+    document.getElementById(t).classList.toggle('hidden', t !== name);
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['home','words','grammar','chat'][i] === name);
+  });
+  if (name === 'words') loadNextWord();
+  if (name === 'grammar') renderGrammar();
+  if (name === 'chat') renderChat();
+}
+
+// ============ AI 对话 ============
+function saveKey() {
+  const key = document.getElementById('api-key').value.trim();
+  const level = document.getElementById('level').value.trim();
+  if (key) store.apiKey = key;
+  store.level = level;
+  save();
+  alert('保存しました / 已保存');
+}
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!store.apiKey) { alert('先にAPIキーを設定してください / 请先设置API Key'); return; }
+  store.chat.push({role:'user', content:text});
+  input.value = '';
+  renderChat();
+  const box = document.getElementById('chat-box');
+  box.innerHTML += `<div class="msg ai" id="loading">考え中... / 思考中...</div>`;
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': store.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1024,
+        system:`你是我的日语私教。我的水平是${store.level||'N5'}，母语是中文。
+规则：
+1. 用日语回复我，但难度匹配我的水平
+2. 如果我日语有错误，先用【訂正】指出错误并给正确说法，再用中文简单解释
+3. 然后自然地继续对话，问我一个问题
+4. 保持鼓励、耐心
+5. 每次回复不要过长，控制在150字以内`,
+        messages: store.chat.slice(-10)
+      })
+    });
+    const data = await res.json();
+    document.getElementById('loading')?.remove();
+    if (data.error) {
+      store.chat.push({role:'assistant', content:'[エラー] ' + data.error.message});
+    } else {
+      store.chat.push({role:'assistant', content:data.content[0].text});
+    }
+  } catch(e) {
+    document.getElementById('loading')?.remove();
+    store.chat.push({role:'assistant', content:'[通信エラー] ' + e.message});
+  }
+  save();
+  renderChat();
+}
+function renderChat() {
+  const box = document.getElementById('chat-box');
+  box.innerHTML = store.chat.map(m =>
+    `<div class="msg ${m.role === 'user' ? 'user' : 'ai'}">${escapeHtml(m.content)}</div>`
+  ).join('');
+  box.scrollTop = box.scrollHeight;
+  if (store.apiKey) document.getElementById('api-key').value = store.apiKey;
+  if (store.level) document.getElementById('level').value = store.level;
+}
+function clearChat() { store.chat = []; save(); renderChat(); }
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============ 初始化 ============
+updateStats();
+loadNextWord();
+</script>
+</body>
+</html>
+```
